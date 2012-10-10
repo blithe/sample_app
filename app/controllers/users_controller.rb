@@ -8,11 +8,17 @@ class UsersController < ApplicationController
   end
 
   def new
+    if signed_in?
+      redirect_to(root_path)
+    end
   	@user = User.new
   end
 
   def create
-  	@user = User.new(params[:user])
+    if signed_in?
+      redirect_to(root_path)
+    end
+    @user = User.new(params[:user])
   	if @user.save
   		# Handle a successful save.
       sign_in @user

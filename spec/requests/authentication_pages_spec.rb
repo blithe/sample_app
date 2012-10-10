@@ -7,20 +7,25 @@ describe "Authentication" do
     	before { visit signin_path }
 
     	describe "with invalid information" do
+            let(:user) { FactoryGirl.create(:user) }
     		before {click_button "Sign in" }
 
+            it { should_not have_link('Users', href: users_path) }
+            it { should_not have_link('Profile', href: user_path(user)) }
+            it { should_not have_link('Settings', href: edit_user_path(user)) }
+
     	it { should have_selector('title', text: 'Sign in') }
-    	it { should have_selector('div.alert.alert-error', text: 'Invalid') }
+    	it { should have_error_message('Invalid') }
     	
     	describe "after visiting another page" do
     		before {click_link "Home" }
-    		it { should_not have_selector('div.alert.alert-error') }
+    		it { should_not have_error_message('') }
 			end    	
     	end
 
     	describe "with valid information" do
     		let(:user) { FactoryGirl.create(:user) }
-    		before { valid_signin(user) }
+    		before { sign_in(user) }
     		
     		it { should have_selector('title', text: user.name) }
             it { should have_link('Users', href: users_path) }
@@ -35,6 +40,14 @@ describe "Authentication" do
     		end
     	end	
   	end
+
+    describe "accessible attributes" do
+       it "should not allow access to admin" do
+            expect do
+                User.new(admin: true)
+            end.to raise_error(ActiveModel::MassAssignmentSecurity::Error)
+        end
+    end
 
     describe "authorization" do
         describe "for non-signed-in users" do
