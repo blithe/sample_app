@@ -18,6 +18,7 @@ describe "StaticPages" do
     it { should_not have_selector 'title', text: '| Home' }
 
     describe "for signed-in users" do
+      before (:all) { User.delete_all }
       let(:user) { FactoryGirl.create(:user) }
       before do
         FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum")
@@ -26,10 +27,19 @@ describe "StaticPages" do
         visit root_path
       end
 
+      it { should have_content(user.microposts.count) }
+      it { should have_content("microposts") }
+
       it "should render the user's feed" do
         user.feed.each do |item|
           page.should have_selector("li##{item.id}", text: item.content)
         end
+      end
+
+      describe "should have micropost pagination" do
+        before(:all) { 31.times { FactoryGirl.create(:micropost, user: user) } }
+        after(:all) { user.microposts.delete_all }
+        it { should have_selector('div.pagination') }
       end
     end
   end
