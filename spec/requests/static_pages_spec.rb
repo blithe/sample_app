@@ -41,6 +41,17 @@ describe "StaticPages" do
         after(:all) { user.microposts.delete_all }
         it { should have_selector('div.pagination') }
       end
+
+      describe "micropost delete links" do
+        let(:other_user) { FactoryGirl.create(:user) }
+        let!(:m3) { FactoryGirl.create(:micropost, user: other_user, content: "Foo") }    
+        
+        it "should exist for current user" do
+          user.feed.each do |item|
+            find("li##{item.id}").should have_link('delete')
+          end
+        end
+      end
     end
   end
 

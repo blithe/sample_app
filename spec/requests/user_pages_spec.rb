@@ -106,11 +106,15 @@ describe "User pages" do
   end
 
  describe "profile page" do
+    before(:all) { User.delete_all }
     let(:user) { FactoryGirl.create(:user) }
     let!(:m1) { FactoryGirl.create(:micropost, user: user, content: "Foo") }
     let!(:m2) { FactoryGirl.create(:micropost, user: user, content: "Bar") }
 
-    before { visit user_path(user) }
+    before do
+      sign_in user
+      visit user_path(user)
+    end
 
     it { should have_selector('h1', text: user.name) }
     it { should have_selector('title', text: user.name) }
@@ -125,6 +129,25 @@ describe "User pages" do
       it { should have_content(m1.content) }
       it { should have_content(m2.content) }
       it { should have_content(user.microposts.count) }
+    end
+
+    describe "micropost delete links" do
+      let(:other_user) { FactoryGirl.create(:user) }
+      let!(:m3) { FactoryGirl.create(:micropost, user: other_user, content: "Foo") }    
+      
+      it "should exist for current user" do
+        visit user_path(user)
+        user.microposts.each do |item|
+          find("li##{item.id}").should have_link('delete')
+        end
+      end
+
+      it "should not exist for other user" do
+        visit user_path(other_user)
+        other_user.microposts.each do |item|
+          find("li##{item.id}").should_not have_link('delete')
+        end
+      end
     end
   end
 
